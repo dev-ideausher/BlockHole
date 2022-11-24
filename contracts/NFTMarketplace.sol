@@ -37,12 +37,12 @@ contract NFTMarketplace is ERC721URIStorage {
         bool sold
     );
 
-    event ListingCancelled(
-        uint256 indexed tokenId,
-        address creator,
-        address seller,
-        address owner
-    );
+    // event ListingCancelled(
+    //     uint256 indexed tokenId,
+    //     address creator,
+    //     address seller,
+    //     address owner
+    // );
 
     modifier onlyOwner() {
         require(
@@ -68,7 +68,7 @@ contract NFTMarketplace is ERC721URIStorage {
         return listingPrice;
     }
 
-    function createNFT(
+    function createNFTAndList(
         string memory tokenURI,
         uint256 price,
         uint256 royaltyPercent
@@ -139,12 +139,12 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
 
-        _transfer(address(this), msg.sender, tokenId);
+        _transfer(address(this), seller, tokenId);
 
         emit ListingCancelled(
             tokenId,
-            idToNFTItemMarketSpecs[tokenId].creator,
-            address(0),
+            idToNFTItemMarketSpecs[tokenId].owner,
+            msg.sender,
             msg.sender
         );
     }
