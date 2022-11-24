@@ -12,7 +12,7 @@ contract NFTMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
-    uint256 listingPrice = 0.025 ether;
+    uint256 listingPrice = 0.0025 ether;
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
@@ -143,8 +143,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
         emit ListingCancelled(
             tokenId,
-            idToNFTItemMarketSpecs[tokenId].owner,
-            msg.sender,
+            idToNFTItemMarketSpecs[tokenId].creator,
+            address(0),
             msg.sender
         );
     }
