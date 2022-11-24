@@ -12,7 +12,7 @@ contract NFTMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
-    uint256 listingPrice = 0.025 ether;
+    uint256 listingPrice = 0.001 ether;
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
@@ -25,6 +25,7 @@ contract NFTMarketplace is ERC721URIStorage {
         address payable owner;
         uint256 price;
         bool sold;
+        bool cancelledPreviousListing;
     }
 
     event ListingNFT(
@@ -37,12 +38,12 @@ contract NFTMarketplace is ERC721URIStorage {
         bool sold
     );
 
-    // event ListingCancelled(
-    //     uint256 indexed tokenId,
-    //     address creator,
-    //     address seller,
-    //     address owner
-    // );
+    event ListingCancelled(
+        uint256 indexed tokenId,
+        address creator,
+        address seller,
+        address owner
+    );
 
     modifier onlyOwner() {
         require(
@@ -97,7 +98,8 @@ contract NFTMarketplace is ERC721URIStorage {
             payable(msg.sender), // seller
             payable(address(this)), // owner (seller transfers the nft to contract for sale. so contract is the current owner)
             price, // price
-            false // sell status
+            false, // sell status
+            false
         );
 
         _transfer(msg.sender, address(this), tokenId);
@@ -125,29 +127,32 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].price = price;
         idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].owner = payable(address(this));
-        _itemsSold.decrement();
+        if (idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing == false) {
+            _itemsSold.decrement();
+        }
 
         _transfer(msg.sender, address(this), tokenId);
     }
 
-    // function cancelListing(uint256 tokenId) external {
-    //     address seller = idToNFTItemMarketSpecs[tokenId].seller;
-    //     require(
-    //         idToNFTItemMarketSpecs[tokenId].seller == msg.sender,
-    //         "Only the seller can cancel the listing"
-    //     );
-    //     idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
-    //     idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+    function cancelListing(uint256 tokenId) external {
+        address seller = idToNFTItemMarketSpecs[tokenId].seller;
+        require(
+            idToNFTItemMarketSpecs[tokenId].seller == msg.sender,
+            "Only the seller can cancel the listing"
+        );
+        idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = true;
 
-    //     _transfer(address(this), seller, tokenId);
+        _transfer(address(this), seller, tokenId);
 
-    //     emit ListingCancelled(
-    //         tokenId,
-    //         idToNFTItemMarketSpecs[tokenId].owner,
-    //         msg.sender,
-    //         msg.sender
-    //     );
-    // }
+        emit ListingCancelled(
+            tokenId,
+            idToNFTItemMarketSpecs[tokenId].owner,
+            msg.sender,
+            msg.sender
+        );
+    }
 
     function buyNFT(uint256 tokenId) public payable {
         uint256 price = idToNFTItemMarketSpecs[tokenId].price;
@@ -158,6 +163,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
