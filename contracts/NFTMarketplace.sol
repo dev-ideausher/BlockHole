@@ -219,7 +219,7 @@ contract NFTMarketplace is ERC721URIStorage {
         return items;
     }
 
-    function fetchListedNFTs()
+    function fetchMyListedNFTs()
         public
         view
         returns (NFTItemMarketSpecs[] memory)
