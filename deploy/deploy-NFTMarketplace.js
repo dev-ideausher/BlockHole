@@ -4,7 +4,7 @@ const { developmentChains } = require("../helper-hardhat-config");
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   const { deployer } = await getNamedAccounts();
-  const waitBlockConfirmations = developmentChains.includes(network.name);
+  const waitBlockConfirmations = 1;
   log("----------------------------------------------------");
   const args = [];
   const nftMarketplace = await deploy("NFTMarketplace", {
