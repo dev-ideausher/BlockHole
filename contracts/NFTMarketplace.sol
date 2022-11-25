@@ -99,7 +99,7 @@ contract NFTMarketplace is ERC721URIStorage {
             payable(address(this)), // owner (seller transfers the nft to contract for sale. so contract is the current owner)
             price, // price
             false, // sell status
-            false
+            false // previous listing cancel status
         );
 
         _transfer(msg.sender, address(this), tokenId);
@@ -159,23 +159,24 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 royaltyAmount = ((idToNFTItemMarketSpecs[tokenId]
             .royaltyPercent * msg.value) / 100);
         uint256 SellerPayout = price - royaltyAmount;
+        address seller = idToNFTItemMarketSpecs[tokenId].seller;
         require(msg.value >= price, "value is not equal to nft purchase price");
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
-        idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
             royaltyAmount
         );
-        payable(idToNFTItemMarketSpecs[tokenId].seller).transfer(SellerPayout);
+        payable(seller).transfer(SellerPayout);
+        idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
     }
 
     function withdrawListingCommission() public {
         require(
             msg.sender == NFTMarketplaceOwner,
-            "Only the owner can withdraw the listing commission"
+            "Only the markerplace owner can withdraw the listing commission"
         );
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
     }
