@@ -12,7 +12,7 @@ contract NFTMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
-    uint256 listingPrice = 0.001 ether;
+    uint256 listingPrice = 0.1 ether;
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
@@ -26,6 +26,7 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 price;
         bool sold;
         bool cancelledPreviousListing;
+        bool relisted; // status checking wheter its listed for the firt time
     }
 
     event ListingNFT(
@@ -69,45 +70,49 @@ contract NFTMarketplace is ERC721URIStorage {
         return listingPrice;
     }
 
-    function createNFTAndList(
-        string memory tokenURI,
-        uint256 price,
-        uint256 royaltyPercent
-    ) public payable returns (uint256) {
+    function createNFT(string memory tokenURI, uint256 royaltyPercent)
+        public
+        payable
+        returns (uint256)
+    {
         require(royaltyPercent <= 10, "Royalty should be less than 10%");
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
         _mint(msg.sender, tokenId);
         _setTokenURI(tokenId, tokenURI);
-        SellNftByCreator(tokenId, price, royaltyPercent);
+        idToNFTItemMarketSpecs[tokenId].tokenId = tokenId;
+        idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].royaltyPercent = royaltyPercent;
+        idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].sold = false;
+        idToNFTItemMarketSpecs[tokenId].relisted = false;
         return tokenId;
     }
 
-    function SellNftByCreator(
-        uint256 tokenId,
-        uint256 price,
-        uint256 royaltyPercent
-    ) private {
+    function SellNft(uint256 tokenId, uint256 price) public payable {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingPrice, "Must be equal to listing price");
-
-        idToNFTItemMarketSpecs[tokenId] = NFTItemMarketSpecs(
-            tokenId, // tokenId
-            payable(msg.sender), // creator
-            royaltyPercent, // royalty percent
-            payable(msg.sender), // seller
-            payable(address(this)), // owner (seller transfers the nft to contract for sale. so contract is the current owner)
-            price, // price
-            false, // sell status
-            false // previous listing cancel status
+        require(
+            idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
+            "Only the owner of nft can sell his nft"
         );
 
+        idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].price = price;
+        idToNFTItemMarketSpecs[tokenId].owner = payable(address(this));
+        if (
+            idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing == false &&
+            idToNFTItemMarketSpecs[tokenId].relisted == true
+        ) {
+            _itemsSold.decrement();
+        }
         _transfer(msg.sender, address(this), tokenId);
 
         emit ListingNFT(
             tokenId,
             msg.sender,
-            royaltyPercent,
+            idToNFTItemMarketSpecs[tokenId].royaltyPercent,
             msg.sender,
             address(this),
             price,
@@ -116,23 +121,6 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     // function changeRoyaltyPercentByCreator() external {}
-
-    function resellNft(uint256 tokenId, uint256 price) public payable {
-        require(
-            idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
-            "Only the owner of nft can sell his nft"
-        );
-        require(msg.value == listingPrice, "Must be equal to listing price");
-        idToNFTItemMarketSpecs[tokenId].sold = false;
-        idToNFTItemMarketSpecs[tokenId].price = price;
-        idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
-        idToNFTItemMarketSpecs[tokenId].owner = payable(address(this));
-        if (idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing == false) {
-            _itemsSold.decrement();
-        }
-
-        _transfer(msg.sender, address(this), tokenId);
-    }
 
     function cancelListing(uint256 tokenId) external {
         address seller = idToNFTItemMarketSpecs[tokenId].seller;
@@ -159,17 +147,17 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 royaltyAmount = ((idToNFTItemMarketSpecs[tokenId]
             .royaltyPercent * msg.value) / 100);
         uint256 SellerPayout = price - royaltyAmount;
-        address seller = idToNFTItemMarketSpecs[tokenId].seller;
         require(msg.value >= price, "value is not equal to nft purchase price");
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
+        idToNFTItemMarketSpecs[tokenId].relisted = true;
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
             royaltyAmount
         );
-        payable(seller).transfer(SellerPayout);
+        payable(idToNFTItemMarketSpecs[tokenId].seller).transfer(SellerPayout);
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
     }
 
@@ -181,7 +169,11 @@ contract NFTMarketplace is ERC721URIStorage {
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
     }
 
-    function fetchAllNFTs() public view returns (NFTItemMarketSpecs[] memory) {
+    function fetchAllUnsoldNFTs()
+        public
+        view
+        returns (NFTItemMarketSpecs[] memory)
+    {
         uint256 itemCount = _tokenIds.current();
         uint256 unsoldItemCount = _tokenIds.current() - _itemsSold.current();
         uint256 currentIndex = 0;
@@ -227,7 +219,7 @@ contract NFTMarketplace is ERC721URIStorage {
         return items;
     }
 
-    function fetchListedNFTs()
+    function fetchMyListedNFTs()
         public
         view
         returns (NFTItemMarketSpecs[] memory)
