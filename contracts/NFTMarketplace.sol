@@ -12,7 +12,7 @@ contract NFTMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
-    uint256 listingPrice = 0.1 ether;
+    uint256 listingPrice = 0.01 ether;
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
@@ -29,13 +29,19 @@ contract NFTMarketplace is ERC721URIStorage {
         bool relisted; // status checking wheter its listed for the firt time
     }
 
-    event ListingNFT(
+    event createdNFT(
         uint256 indexed tokenId,
         address indexed creator,
         uint256 indexed royaltyPercent,
+    );
+
+    event ListingNFT(
+        uint256 indexed tokenId,
+        address indexed creator,
+        uint256 royaltyPercent,
         address seller,
         address owner,
-        uint256 price,
+        uint256 indexed price,
         bool sold
     );
 
@@ -45,6 +51,7 @@ contract NFTMarketplace is ERC721URIStorage {
         address indexed seller,
         address owner
     );
+
 
     modifier onlyOwner() {
         require(
@@ -87,6 +94,12 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].sold = false;
         idToNFTItemMarketSpecs[tokenId].relisted = false;
         return tokenId;
+
+         emit createdNFT(
+            tokenId,
+            msg.sender,
+            idToNFTItemMarketSpecs[tokenId].royaltyPercent,
+        );
     }
 
     function SellNft(uint256 tokenId, uint256 price) public payable {
