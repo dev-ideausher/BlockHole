@@ -31,8 +31,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
     event ListingNFT(
         uint256 indexed tokenId,
-        address creator,
-        uint256 royaltyPercent,
+        address indexed creator,
+        uint256 indexed royaltyPercent,
         address seller,
         address owner,
         uint256 price,
@@ -41,8 +41,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
     event ListingCancelled(
         uint256 indexed tokenId,
-        address creator,
-        address seller,
+        address indexed creator,
+        address indexed seller,
         address owner
     );
 
@@ -72,7 +72,6 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function createNFT(string memory tokenURI, uint256 royaltyPercent)
         public
-        payable
         returns (uint256)
     {
         require(royaltyPercent <= 10, "Royalty should be less than 10%");
