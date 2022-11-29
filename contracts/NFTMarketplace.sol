@@ -55,7 +55,7 @@ contract NFTMarketplace is ERC721URIStorage {
     modifier onlyOwner() {
         require(
             msg.sender == NFTMarketplaceOwner,
-            "only owner of the marketplace can change the listing price"
+            "only owner of the marketplace can perform this action"
         );
         _;
     }
@@ -64,11 +64,7 @@ contract NFTMarketplace is ERC721URIStorage {
         NFTMarketplaceOwner = payable(msg.sender);
     }
 
-    function updateListingPrice(uint256 _listingPrice)
-        public
-        payable
-        onlyOwner
-    {
+    function updateListingPrice(uint256 _listingPrice) public onlyOwner {
         listingPrice = _listingPrice;
     }
 
@@ -97,7 +93,6 @@ contract NFTMarketplace is ERC721URIStorage {
             msg.sender,
             idToNFTItemMarketSpecs[tokenId].royaltyPercent
         );
-        return tokenId;
     }
 
     function SellNft(uint256 tokenId, uint256 price) public payable {
@@ -171,11 +166,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
     }
 
-    function withdrawListingCommission() public {
-        require(
-            msg.sender == NFTMarketplaceOwner,
-            "Only the markerplace owner can withdraw the listing commission"
-        );
+    function withdrawListingCommission() public onlyOwner {
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
     }
 
