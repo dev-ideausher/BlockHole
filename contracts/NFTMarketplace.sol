@@ -26,7 +26,7 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 price;
         bool sold;
         bool cancelledPreviousListing;
-        bool relisted; // status checking wheter its listed for the firt time
+        bool relisted;
     }
 
     event createdNFT(
@@ -64,7 +64,7 @@ contract NFTMarketplace is ERC721URIStorage {
         NFTMarketplaceOwner = payable(msg.sender);
     }
 
-    function updateListingPrice(uint256 _listingPrice) public onlyOwner {
+    function updateListingPrice(uint256 _listingPrice) external onlyOwner {
         listingPrice = _listingPrice;
     }
 
@@ -73,8 +73,7 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     function createNFT(string memory tokenURI, uint256 royaltyPercent)
-        public
-        returns (uint256)
+        external
     {
         require(royaltyPercent <= 10, "Royalty should be less than 10%");
         _tokenIds.increment();
@@ -95,7 +94,7 @@ contract NFTMarketplace is ERC721URIStorage {
         );
     }
 
-    function SellNft(uint256 tokenId, uint256 price) public payable {
+    function SellNft(uint256 tokenId, uint256 price) external payable {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingPrice, "Must be equal to listing price");
         require(
@@ -147,7 +146,7 @@ contract NFTMarketplace is ERC721URIStorage {
         );
     }
 
-    function buyNFT(uint256 tokenId) public payable {
+    function buyNFT(uint256 tokenId) external payable {
         uint256 price = idToNFTItemMarketSpecs[tokenId].price;
         uint256 royaltyAmount = ((idToNFTItemMarketSpecs[tokenId]
             .royaltyPercent * msg.value) / 100);
@@ -166,7 +165,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
     }
 
-    function withdrawListingCommission() public onlyOwner {
+    function withdrawListingCommission() external onlyOwner {
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
     }
 
@@ -221,7 +220,7 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     function fetchMyListedNFTs()
-        public
+        external
         view
         returns (NFTItemMarketSpecs[] memory)
     {
