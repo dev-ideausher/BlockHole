@@ -52,6 +52,13 @@ contract NFTMarketplace is ERC721URIStorage {
         address owner
     );
 
+    event buyingNFT(
+        uint256 indexed tokenId,
+        address creator,
+        address indexed seller,
+        address indexed owner
+    );
+
     modifier onlyOwner() {
         require(
             msg.sender == NFTMarketplaceOwner,
@@ -87,6 +94,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = false;
         idToNFTItemMarketSpecs[tokenId].relisted = false;
+        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
         emit createdNFT(
             tokenId,
             msg.sender,
@@ -140,7 +148,7 @@ contract NFTMarketplace is ERC721URIStorage {
 
         emit ListingCancelled(
             tokenId,
-            idToNFTItemMarketSpecs[tokenId].owner,
+            idToNFTItemMarketSpecs[tokenId].creator,
             msg.sender,
             msg.sender
         );
@@ -148,10 +156,11 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function buyNFT(uint256 tokenId) external payable {
         uint256 price = idToNFTItemMarketSpecs[tokenId].price;
+        address seller = idToNFTItemMarketSpecs[tokenId].seller;
         uint256 royaltyAmount = ((idToNFTItemMarketSpecs[tokenId]
             .royaltyPercent * msg.value) / 100);
         uint256 SellerPayout = price - royaltyAmount;
-        require(msg.value >= price, "value is not equal to nft purchase price");
+        require(msg.value == price, "value is not equal to nft purchase price");
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
@@ -163,6 +172,13 @@ contract NFTMarketplace is ERC721URIStorage {
         );
         payable(idToNFTItemMarketSpecs[tokenId].seller).transfer(SellerPayout);
         idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+
+        emit buyingNFT(
+            tokenId,
+            idToNFTItemMarketSpecs[tokenId].creator,
+            seller,
+            msg.sender
+        );
     }
 
     function withdrawListingCommission() external onlyOwner {
