@@ -123,7 +123,7 @@ contract NFTMarketplace is ERC721URIStorage {
 
         emit ListingNFT(
             tokenId,
-            msg.sender,
+            idToNFTItemMarketSpecs[tokenId].creator,
             idToNFTItemMarketSpecs[tokenId].royaltyPercent,
             msg.sender,
             address(this),
