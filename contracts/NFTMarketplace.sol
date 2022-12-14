@@ -21,7 +21,7 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 tokenId;
         address payable creator;
         uint256 royaltyPercent;
-        address payable seller;
+        address seller;
         address payable owner;
         uint256 price;
         bool sold;
@@ -79,14 +79,14 @@ contract NFTMarketplace is ERC721URIStorage {
         return listingPrice;
     }
 
-    function createNFT(string memory tokenURI, uint256 royaltyPercent)
+    function createNFT(string memory tokenUri, uint256 royaltyPercent)
         external
     {
         require(royaltyPercent <= 10, "Royalty should be less than 10%");
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
         _mint(msg.sender, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, tokenUri);
         idToNFTItemMarketSpecs[tokenId].tokenId = tokenId;
         idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
@@ -141,7 +141,7 @@ contract NFTMarketplace is ERC721URIStorage {
             "Only the seller can cancel the listing"
         );
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
-        idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+        idToNFTItemMarketSpecs[tokenId].seller = address(0);
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = true;
 
         _transfer(address(this), seller, tokenId);
@@ -165,13 +165,13 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
         idToNFTItemMarketSpecs[tokenId].relisted = true;
+        idToNFTItemMarketSpecs[tokenId].seller = address(0);
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
             royaltyAmount
         );
-        payable(idToNFTItemMarketSpecs[tokenId].seller).transfer(SellerPayout);
-        idToNFTItemMarketSpecs[tokenId].seller = payable(address(0));
+        payable(seller).transfer(SellerPayout);
 
         emit buyingNFT(
             tokenId,
@@ -183,6 +183,10 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function withdrawListingCommission() external onlyOwner {
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
+    }
+
+    function contractBalance() public view returns (uint) {
+        return address(this).balance;
     }
 
     function fetchAllUnsoldNFTs()
