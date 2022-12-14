@@ -89,12 +89,14 @@ contract NFTMarketplace is ERC721URIStorage {
         _setTokenURI(tokenId, tokenUri);
         idToNFTItemMarketSpecs[tokenId].tokenId = tokenId;
         idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].seller = address(0);
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].royaltyPercent = royaltyPercent;
         idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = false;
         idToNFTItemMarketSpecs[tokenId].relisted = false;
         idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
+
         emit createdNFT(
             tokenId,
             msg.sender,
@@ -102,7 +104,7 @@ contract NFTMarketplace is ERC721URIStorage {
         );
     }
 
-    function SellNft(uint256 tokenId, uint256 price) external payable {
+    function listNFT(uint256 tokenId, uint256 price) external payable {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingPrice, "Must be equal to listing price");
         require(
@@ -183,6 +185,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function withdrawListingCommission() external onlyOwner {
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
+        // emit withdrawCommission{
+        // };
     }
 
     function contractBalance() public view returns (uint) {
