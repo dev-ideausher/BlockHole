@@ -59,6 +59,10 @@ contract NFTMarketplace is ERC721URIStorage {
         address indexed owner
     );
 
+    event MarketplaceBalanceWithdrew(string action, uint256 balance);
+
+    event ListingChargeUpdated(string action, uint256 listingCharge);
+
     modifier onlyOwner() {
         require(
             msg.sender == NFTMarketplaceOwner,
@@ -73,6 +77,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function updateListingPrice(uint256 _listingPrice) external onlyOwner {
         listingPrice = _listingPrice;
+
+        emit ListingChargeUpdated("Listing Charge Updated", listingPrice);
     }
 
     function getListingPrice() public view returns (uint256) {
@@ -184,9 +190,14 @@ contract NFTMarketplace is ERC721URIStorage {
     }
 
     function withdrawListingCommission() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "Zero balance in the account.");
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
-        // emit withdrawCommission{
-        // };
+
+        emit MarketplaceBalanceWithdrew(
+            "Marketplace balance withdrew",
+            balance
+        );
     }
 
     function contractBalance() public view returns (uint) {
