@@ -12,7 +12,7 @@ contract NFTMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
 
-    uint256 listingPrice = 0.01 ether;
+    uint256 listingFee = 0.01 ether;
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
@@ -75,14 +75,14 @@ contract NFTMarketplace is ERC721URIStorage {
         NFTMarketplaceOwner = payable(msg.sender);
     }
 
-    function updateListingPrice(uint256 _listingPrice) external onlyOwner {
-        listingPrice = _listingPrice;
+    function updatelistingFee(uint256 _listingFee) external onlyOwner {
+        listingFee = _listingFee;
 
-        emit ListingChargeUpdated("Listing Charge Updated", listingPrice);
+        emit ListingChargeUpdated("Listing Charge Updated", listingFee);
     }
 
-    function getListingPrice() public view returns (uint256) {
-        return listingPrice;
+    function getlistingFee() public view returns (uint256) {
+        return listingFee;
     }
 
     function createNFT(string memory tokenUri, uint256 royaltyPercent)
@@ -111,7 +111,7 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function listNFT(uint256 tokenId, uint256 price) external payable {
         require(price > 0, "Price cannot be 0");
-        require(msg.value == listingPrice, "Must be equal to listing price");
+        require(msg.value == listingFee, "Must be equal to listing price");
         require(
             idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
             "Only the owner of nft can sell his nft"
