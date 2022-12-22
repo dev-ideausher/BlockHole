@@ -139,7 +139,13 @@ contract NFTMarketplace is ERC721URIStorage {
         );
     }
 
-    // function changeRoyaltyPercentByCreator() external {}
+    function updateNftPrice(uint256 tokenId, uint256 price) external {
+        require(
+            idToNFTItemMarketSpecs[tokenId].seller == msg.sender,
+            "Only the seller can update price of NFT"
+        );
+        idToNFTItemMarketSpecs[tokenId].price = price;
+    }
 
     function cancelListing(uint256 tokenId) external {
         address seller = idToNFTItemMarketSpecs[tokenId].seller;
