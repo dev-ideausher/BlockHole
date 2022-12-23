@@ -71,8 +71,8 @@ contract NFTMarketplace is ERC721URIStorage {
         _;
     }
 
-    constructor() ERC721("BlockHole Tokens", "BHT") {
-        NFTMarketplaceOwner = payable(msg.sender);
+    constructor(address _marketplaceOwner) ERC721("BlockHole Tokens", "BHT") {
+        NFTMarketplaceOwner = payable(_marketplaceOwner);
     }
 
     function updatelistingFee(uint256 _listingFee) external onlyOwner {
