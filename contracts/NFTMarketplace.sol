@@ -15,7 +15,7 @@ contract NFTMarketplace is ERC721URIStorage {
     uint256 listingFee = 0.01 ether;
     address payable NFTMarketplaceOwner;
 
-    mapping(uint256 => NFTItemMarketSpecs) private idToNFTItemMarketSpecs;
+    mapping(uint256 => NFTItemMarketSpecs) public idToNFTItemMarketSpecs;
 
     struct NFTItemMarketSpecs {
         uint256 tokenId;
@@ -207,6 +207,14 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function contractBalance() public view returns (uint) {
         return address(this).balance;
+    }
+
+    function fetchCreatorNft(uint tokenId) public view returns (address) {
+        return idToNFTItemMarketSpecs[tokenId].creator;
+    }
+
+    function fetchRoyaltyPercentofNft(uint tokenId) public view returns (uint) {
+        return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
     }
 
     function fetchAllUnsoldNFTs()
