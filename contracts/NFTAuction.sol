@@ -89,7 +89,7 @@ contract NFTAuction {
         // emit ListingChargeUpdated();
     }
 
-    function withdrawListingCommission() external onlyOwner {
+    function withdrawCommission() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "Zero balance in the account.");
         payable(NFTMarketplaceOwner).transfer(address(this).balance);
