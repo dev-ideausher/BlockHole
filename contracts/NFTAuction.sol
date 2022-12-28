@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface NFTMarketplace {
+interface INFTMarketplace {
     function fetchCreatorNft(uint tokenId) external view returns (address);
 
     function fetchRoyaltyPercentofNft(uint tokenId)
@@ -13,7 +13,7 @@ interface NFTMarketplace {
 }
 
 contract NFTAuction {
-    NFTMarketplace marketplace;
+    INFTMarketplace marketplace;
     address marketplaceAddress;
     address NFTMarketplaceOwner;
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
@@ -36,7 +36,7 @@ contract NFTAuction {
     }
 
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
-        marketplace = NFTMarketplace(_marketplaceAddress);
+        marketplace = INFTMarketplace(_marketplaceAddress);
         marketplaceAddress = _marketplaceAddress;
         NFTMarketplaceOwner = payable(_marketplaceOwner);
     }
@@ -138,7 +138,7 @@ contract NFTAuction {
         require(!IdtoAuction[nftId].ended, "ended");
         IdtoAuction[nftId].ended = true;
 
-        // need to send nft to the buyer, need to transfer royalty to creator
+        // need to send nft to the buyer, need to send payout to seller, need to transfer royalty to creator
     }
 
     function fetchNftAuctionData(uint nftId)
