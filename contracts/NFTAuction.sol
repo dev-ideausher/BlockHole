@@ -1,8 +1,16 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity 0.8.4;
 
-import "./NFTMarketplace.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+interface NFTMarketplace {
+    function fetchCreatorNft(uint tokenId) external view returns (address);
+
+    function fetchRoyaltyPercentofNft(uint tokenId)
+        external
+        view
+        returns (uint);
+}
 
 contract NFTAuction {
     NFTMarketplace marketplace;
