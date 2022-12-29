@@ -21,7 +21,7 @@ contract NFTAuction {
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
     mapping(uint256 => mapping(address => uint256)) public bids; // tokenid to bids of addresses
 
-    uint listingAccruel;
+    uint listingfeeAccruel;
 
     // need to get some details from imported nftmarketplace contract
     struct Auction {
@@ -78,7 +78,7 @@ contract NFTAuction {
         IdtoAuction[nftId].seller = payable(msg.sender);
         IdtoAuction[nftId].minPrice = _minPrice;
         IdtoAuction[nftId].endAt = block.timestamp + auctiondays;
-        listingAccruel += msg.value;
+        listingfeeAccruel += msg.value;
 
         IdtoAuction[nftId].creator = payable(
             marketplace.fetchCreatorNft(nftId)
@@ -97,10 +97,10 @@ contract NFTAuction {
         // emit start();
     }
 
-    function withdrawCommission() external onlyOwner {
-        require(listingAccruel > 0, "Zero balance in the account.");
-        listingAccruel = 0;
-        payable(NFTMarketplaceOwner).transfer(listingAccruel);
+    function withdrawListingFeeCommission() external onlyOwner {
+        require(listingfeeAccruel > 0, "Zero balance in the account.");
+        listingfeeAccruel = 0;
+        payable(NFTMarketplaceOwner).transfer(listingfeeAccruel);
         // emit MarketplaceBalanceWithdrew();
     }
 
