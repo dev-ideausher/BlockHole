@@ -31,7 +31,7 @@ contract NFTAuction {
         bool ended;
         address highestBidder;
         uint highestBid;
-        address creator;
+        address payable creator;
         uint royaltPercent;
     }
 
@@ -48,9 +48,6 @@ contract NFTAuction {
         );
         _;
     }
-
-    // TODO
-    // for starting auction the seller should pay some listing commision.
 
     function start(
         uint nftId,
@@ -76,7 +73,9 @@ contract NFTAuction {
         IdtoAuction[nftId].minPrice = _minPrice;
         IdtoAuction[nftId].endAt = block.timestamp + auctiondays;
 
-        IdtoAuction[nftId].creator = marketplace.fetchCreatorNft(nftId);
+        IdtoAuction[nftId].creator = payable(
+            marketplace.fetchCreatorNft(nftId)
+        );
 
         IdtoAuction[nftId].royaltPercent = marketplace.fetchRoyaltyPercentofNft(
             nftId
@@ -137,8 +136,29 @@ contract NFTAuction {
         require(block.timestamp > IdtoAuction[nftId].endAt);
         require(!IdtoAuction[nftId].ended, "ended");
         IdtoAuction[nftId].ended = true;
+        uint256 royaltyAmount = ((IdtoAuction[nftId].royaltPercent *
+            IdtoAuction[nftId].highestBid) / 100);
+        uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
 
         // need to send nft to the buyer, need to send payout to seller, need to transfer royalty to creator
+
+        if (IdtoAuction[nftId].highestBidder != address(0)) {
+            IERC721(marketplaceAddress).safeTransferFrom(
+                address(this),
+                IdtoAuction[nftId].highestBidder,
+                nftId
+            );
+            IdtoAuction[nftId].seller.transfer(SellerPayout);
+            IdtoAuction[nftId].creator.transfer(royaltyAmount);
+        } else {
+            IERC721(marketplaceAddress).safeTransferFrom(
+                address(this),
+                IdtoAuction[nftId].seller,
+                nftId
+            );
+        }
+
+        // emit End();
     }
 
     function fetchNftAuctionData(uint nftId)
