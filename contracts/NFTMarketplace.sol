@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract NFTMarketplace is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
-    Counters.Counter private _itemsSold;
 
     uint256 listingFee = 0.01 ether;
     address payable NFTMarketplaceOwner;
@@ -25,8 +24,6 @@ contract NFTMarketplace is ERC721URIStorage {
         address payable owner;
         uint256 price;
         bool sold;
-        bool cancelledPreviousListing;
-        bool relisted;
     }
 
     event createdNFT(
@@ -63,7 +60,7 @@ contract NFTMarketplace is ERC721URIStorage {
 
     event ListingChargeUpdated(string action, uint256 listingCharge);
 
-    event updatedNFTprice(uint256 tokenId, address seller, uint256 price);
+    event updatedNftprice(uint token, address seller, uint price);
 
     modifier onlyOwner() {
         require(
@@ -101,8 +98,6 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].royaltyPercent = royaltyPercent;
         idToNFTItemMarketSpecs[tokenId].sold = false;
-        idToNFTItemMarketSpecs[tokenId].relisted = false;
-        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
 
         emit createdNFT(
             tokenId,
@@ -122,12 +117,7 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].price = price;
         idToNFTItemMarketSpecs[tokenId].owner = payable(address(this));
-        if (
-            idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing == false &&
-            idToNFTItemMarketSpecs[tokenId].relisted == true
-        ) {
-            _itemsSold.decrement();
-        }
+
         _transfer(msg.sender, address(this), tokenId);
 
         emit ListingNFT(
@@ -148,7 +138,7 @@ contract NFTMarketplace is ERC721URIStorage {
         );
         idToNFTItemMarketSpecs[tokenId].price = price;
 
-        emit updatedNFTprice(
+        emit updatedNftprice(
             tokenId,
             idToNFTItemMarketSpecs[tokenId].seller,
             idToNFTItemMarketSpecs[tokenId].price
@@ -163,7 +153,6 @@ contract NFTMarketplace is ERC721URIStorage {
         );
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
-        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = true;
 
         _transfer(address(this), seller, tokenId);
 
@@ -184,10 +173,7 @@ contract NFTMarketplace is ERC721URIStorage {
         require(msg.value == price, "value is not equal to nft purchase price");
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
-        idToNFTItemMarketSpecs[tokenId].cancelledPreviousListing = false;
-        idToNFTItemMarketSpecs[tokenId].relisted = true;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
-        _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
             royaltyAmount
@@ -223,59 +209,5 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function fetchRoyaltyPercentofNft(uint tokenId) public view returns (uint) {
         return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
-    }
-
-    function fetchMyNFTs() public view returns (NFTItemMarketSpecs[] memory) {
-        uint256 totalItemCount = _tokenIds.current();
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToNFTItemMarketSpecs[i + 1].owner == msg.sender) {
-                itemCount += 1;
-            }
-        }
-
-        NFTItemMarketSpecs[] memory items = new NFTItemMarketSpecs[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToNFTItemMarketSpecs[i + 1].owner == msg.sender) {
-                uint256 currentId = i + 1;
-                NFTItemMarketSpecs storage currentItem = idToNFTItemMarketSpecs[
-                    currentId
-                ];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
-    }
-
-    function fetchMyListedNFTs()
-        external
-        view
-        returns (NFTItemMarketSpecs[] memory)
-    {
-        uint256 totalItemCount = _tokenIds.current();
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToNFTItemMarketSpecs[i + 1].seller == msg.sender) {
-                itemCount += 1;
-            }
-        }
-
-        NFTItemMarketSpecs[] memory items = new NFTItemMarketSpecs[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idToNFTItemMarketSpecs[i + 1].seller == msg.sender) {
-                uint256 currentId = i + 1;
-                NFTItemMarketSpecs storage currentItem = idToNFTItemMarketSpecs[
-                    currentId
-                ];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
     }
 }
