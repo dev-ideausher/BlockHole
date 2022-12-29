@@ -11,7 +11,7 @@ interface INFTMarketplace {
         view
         returns (uint);
 
-    // function getlistingFee() external view returns (uint256);
+    function getlistingFee() external view returns (uint256);
 }
 
 contract NFTAuction {
@@ -20,7 +20,6 @@ contract NFTAuction {
     address NFTMarketplaceOwner;
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
     mapping(uint256 => mapping(address => uint256)) public bids; // tokenid to bids of addresses
-    uint256 listingFee = 0.01 ether;
 
     // need to get some details from imported nftmarketplace contract
     struct Auction {
@@ -61,7 +60,10 @@ contract NFTAuction {
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
             "Started"
         );
-        require(msg.value == listingFee, "Must be equal to listing price");
+        require(
+            msg.value == marketplace.getlistingFee(),
+            "Must be equal to listing price"
+        );
         require(
             auctiondays <= 7 && auctiondays >= 1,
             "auction time should be less than 7 days and more than 1 day"
@@ -90,12 +92,6 @@ contract NFTAuction {
         );
 
         // emit start();
-    }
-
-    function updatelistingFee(uint256 _listingFee) external onlyOwner {
-        listingFee = _listingFee;
-
-        // emit ListingChargeUpdated();
     }
 
     function withdrawCommission() external onlyOwner {
