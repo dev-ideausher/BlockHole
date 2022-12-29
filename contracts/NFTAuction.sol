@@ -10,6 +10,8 @@ interface INFTMarketplace {
         external
         view
         returns (uint);
+
+    // function getlistingFee() external view returns (uint256);
 }
 
 contract NFTAuction {

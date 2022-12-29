@@ -225,31 +225,6 @@ contract NFTMarketplace is ERC721URIStorage {
         return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
     }
 
-    function fetchAllUnsoldNFTs()
-        public
-        view
-        returns (NFTItemMarketSpecs[] memory)
-    {
-        uint256 itemCount = _tokenIds.current();
-        uint256 unsoldItemCount = _tokenIds.current() - _itemsSold.current();
-        uint256 currentIndex = 0;
-
-        NFTItemMarketSpecs[] memory items = new NFTItemMarketSpecs[](
-            unsoldItemCount
-        );
-        for (uint256 i = 0; i < itemCount; i++) {
-            if (idToNFTItemMarketSpecs[i + 1].owner == address(this)) {
-                uint256 currentId = i + 1;
-                NFTItemMarketSpecs storage currentItem = idToNFTItemMarketSpecs[
-                    currentId
-                ];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
-    }
-
     function fetchMyNFTs() public view returns (NFTItemMarketSpecs[] memory) {
         uint256 totalItemCount = _tokenIds.current();
         uint256 itemCount = 0;
