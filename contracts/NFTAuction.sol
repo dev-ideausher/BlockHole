@@ -108,17 +108,19 @@ contract NFTAuction {
         require(IdtoAuction[nftId].started, "Not Started");
         require(block.timestamp < IdtoAuction[nftId].endAt, "ended");
         require(
-            msg.value > IdtoAuction[nftId].highestBid, /*msg.value +  bids[nftId][msg.sender]*/
+            msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].highestBid,
             "value should be greater than current highest bid"
         );
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
-            bids[nftId][IdtoAuction[nftId].highestBidder] += IdtoAuction[nftId]
-                .highestBid; /*+=msg.value*/
+            bids[nftId][msg.sender] += msg.value;
+            IdtoAuction[nftId].highestBidder = msg.sender;
+            IdtoAuction[nftId].highestBid = bids[nftId][msg.sender];
+        } else {
+            bids[nftId][msg.sender] = msg.value;
+            IdtoAuction[nftId].highestBidder = msg.sender;
+            IdtoAuction[nftId].highestBid = bids[nftId][msg.sender];
         }
-
-        IdtoAuction[nftId].highestBidder = msg.sender;
-        IdtoAuction[nftId].highestBid = msg.value; /*bids[nftId][msg.sender]*/
 
         // emit Bid();
     }
