@@ -77,7 +77,7 @@ contract NFTAuction {
         IdtoAuction[nftId].nftId = nftId;
         IdtoAuction[nftId].seller = payable(msg.sender);
         IdtoAuction[nftId].minPrice = _minPrice;
-        IdtoAuction[nftId].endAt = block.timestamp + auctiondays;
+        IdtoAuction[nftId].endAt = block.timestamp + auctiondays * 1 days;
         listingfeeAccruel += msg.value;
 
         IdtoAuction[nftId].creator = payable(
@@ -142,8 +142,6 @@ contract NFTAuction {
         uint256 royaltyAmount = ((IdtoAuction[nftId].royaltPercent *
             IdtoAuction[nftId].highestBid) / 100);
         uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
-
-        // need to send nft to the buyer, need to send payout to seller, need to transfer royalty to creator
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
             IERC721(marketplaceAddress).safeTransferFrom(
