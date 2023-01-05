@@ -149,6 +149,8 @@ contract NFTAuction {
                 IdtoAuction[nftId].highestBidder,
                 nftId
             );
+            IdtoAuction[nftId].highestBid = 0;
+            IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].seller.transfer(SellerPayout);
             IdtoAuction[nftId].creator.transfer(royaltyAmount);
         } else {
