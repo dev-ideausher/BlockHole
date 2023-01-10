@@ -111,6 +111,10 @@ contract NFTAuction {
             msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].highestBid,
             "value should be greater than current highest bid"
         );
+        require(
+            msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].minPrice,
+            "value should be greater than current highest bid"
+        );
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
             bids[nftId][msg.sender] += msg.value;
@@ -152,6 +156,7 @@ contract NFTAuction {
                 IdtoAuction[nftId].highestBidder,
                 nftId
             );
+            bids[nftId][IdtoAuction[nftId].highestBidder] = 0;
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].seller.transfer(SellerPayout);
