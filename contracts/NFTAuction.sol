@@ -125,8 +125,11 @@ contract NFTAuction {
         // emit Bid();
     }
 
-    function withdraw(uint nftId) external {
-        require(block.timestamp > IdtoAuction[nftId].endAt);
+    function withdrawBid(uint nftId) external {
+        require(
+            block.timestamp > IdtoAuction[nftId].endAt,
+            "Bid can be withdrawn only after auction has ended"
+        );
         uint bal = bids[nftId][msg.sender];
         bids[nftId][msg.sender] = 0;
         payable(msg.sender).transfer(bal);
