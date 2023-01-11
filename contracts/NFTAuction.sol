@@ -113,7 +113,7 @@ contract NFTAuction {
         );
         require(
             msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].minPrice,
-            "value should be greater than current highest bid"
+            "value should be greater minprice"
         );
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
