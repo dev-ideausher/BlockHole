@@ -35,7 +35,7 @@ contract NFTAuction {
         address highestBidder;
         uint highestBid;
         address payable creator;
-        uint royaltPercent;
+        uint royaltyPercent;
     }
 
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
@@ -60,7 +60,7 @@ contract NFTAuction {
         require(!IdtoAuction[nftId].started, "Started");
         require(
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
-            "Started"
+            "Not Owner"
         );
         require(
             msg.value == marketplace.getlistingFee(),
@@ -76,7 +76,7 @@ contract NFTAuction {
         IdtoAuction[nftId].started = true;
         IdtoAuction[nftId].nftId = nftId;
         IdtoAuction[nftId].seller = payable(msg.sender);
-        IdtoAuction[nftId].minPrice = _minPrice;
+        IdtoAuction[nftId].minPrice = _minPrice * 10**18;
         IdtoAuction[nftId].endAt = block.timestamp + auctiondays * 1 days;
         listingfeeAccruel += msg.value;
 
@@ -84,9 +84,8 @@ contract NFTAuction {
             marketplace.fetchCreatorNft(nftId)
         );
 
-        IdtoAuction[nftId].royaltPercent = marketplace.fetchRoyaltyPercentofNft(
-            nftId
-        );
+        IdtoAuction[nftId].royaltyPercent = marketplace
+            .fetchRoyaltyPercentofNft(nftId);
 
         IERC721(marketplaceAddress).transferFrom(
             msg.sender,
@@ -134,6 +133,7 @@ contract NFTAuction {
             block.timestamp > IdtoAuction[nftId].endAt,
             "Bid can be withdrawn only after auction has ended"
         );
+        require(bids[nftId][msg.sender] > 0, "You have no amount in bid");
         uint bal = bids[nftId][msg.sender];
         bids[nftId][msg.sender] = 0;
         payable(msg.sender).transfer(bal);
@@ -143,10 +143,13 @@ contract NFTAuction {
 
     function end(uint nftId) external {
         require(IdtoAuction[nftId].started, "not started");
-        require(block.timestamp > IdtoAuction[nftId].endAt);
+        require(
+            block.timestamp > IdtoAuction[nftId].endAt,
+            "auction still going"
+        );
         require(!IdtoAuction[nftId].ended, "ended");
         IdtoAuction[nftId].ended = true;
-        uint256 royaltyAmount = ((IdtoAuction[nftId].royaltPercent *
+        uint256 royaltyAmount = ((IdtoAuction[nftId].royaltyPercent *
             IdtoAuction[nftId].highestBid) / 100);
         uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
 
