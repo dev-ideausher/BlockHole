@@ -74,6 +74,7 @@ contract NFTAuction {
         // the approval function can be put in front-end
 
         IdtoAuction[nftId].started = true;
+        IdtoAuction[nftId].ended = false;
         IdtoAuction[nftId].nftId = nftId;
         IdtoAuction[nftId].seller = payable(msg.sender);
         IdtoAuction[nftId].minPrice = _minPrice * 10**18;
@@ -152,6 +153,9 @@ contract NFTAuction {
         uint256 royaltyAmount = ((IdtoAuction[nftId].royaltyPercent *
             IdtoAuction[nftId].highestBid) / 100);
         uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
+
+        IdtoAuction[nftId].started = false;
+        IdtoAuction[nftId].minPrice = 0;
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
             IERC721(marketplaceAddress).safeTransferFrom(
