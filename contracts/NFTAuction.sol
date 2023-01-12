@@ -174,6 +174,8 @@ contract NFTAuction {
                 IdtoAuction[nftId].seller,
                 nftId
             );
+            IdtoAuction[nftId].highestBidder = address(0);
+            IdtoAuction[nftId].highestBid = 0;
         }
 
         // emit End();
