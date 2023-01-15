@@ -38,6 +38,11 @@ contract NFTAuction {
         uint royaltyPercent;
     }
 
+    // event start
+    // event bid
+    // event withdraw
+    // event end
+
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
         marketplace = INFTMarketplace(_marketplaceAddress);
         marketplaceAddress = _marketplaceAddress;
@@ -130,16 +135,16 @@ contract NFTAuction {
     }
 
     function withdrawBid(uint nftId) external {
-        require(
-            block.timestamp > IdtoAuction[nftId].endAt,
-            "Bid can be withdrawn only after auction has ended"
-        );
         require(bids[nftId][msg.sender] > 0, "You have no amount in bid");
+        require(
+            msg.sender != IdtoAuction[nftId].highestBidder,
+            "Bidders except highest bidder can withdraw their bid amount anytime"
+        );
         uint bal = bids[nftId][msg.sender];
         bids[nftId][msg.sender] = 0;
         payable(msg.sender).transfer(bal);
 
-        // emit Withdraw();
+        // emit withdraw();
     }
 
     function end(uint nftId) external {
