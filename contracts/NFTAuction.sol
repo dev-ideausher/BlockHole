@@ -47,6 +47,8 @@ contract NFTAuction {
 
     event commissionWithdrawn(uint commission);
 
+    // event bidWithdrawn()
+
     // event auctionEnded
 
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
@@ -203,5 +205,9 @@ contract NFTAuction {
 
     function fetchMyBidAmountDataForNft(uint nftId) public view returns (uint) {
         return bids[nftId][msg.sender];
+    }
+
+    function fetchListingfee() public view returns (uint) {
+        return marketplace.getlistingFee();
     }
 }
