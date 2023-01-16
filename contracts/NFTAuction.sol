@@ -38,10 +38,16 @@ contract NFTAuction {
         uint royaltyPercent;
     }
 
-    // event start
-    // event bid
-    // event withdraw
-    // event end
+    event auctionStarted(
+        uint indexed nftId,
+        uint indexed minPrice,
+        uint indexed auctiondays
+    );
+    event biddingPlaced(uint indexed nftId, address indexed highestBidder);
+
+    event commissionWithdrawn(uint commission);
+
+    // event auctionEnded
 
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
         marketplace = INFTMarketplace(_marketplaceAddress);
@@ -99,14 +105,15 @@ contract NFTAuction {
             nftId
         );
 
-        // emit start();
+        emit auctionStarted(nftId, IdtoAuction[nftId].minPrice, auctiondays);
     }
 
     function withdrawListingFeeCommission() external onlyOwner {
         require(listingfeeAccruel > 0, "Zero balance in the account.");
+        uint feeAccruel = listingfeeAccruel;
         listingfeeAccruel = 0;
-        payable(NFTMarketplaceOwner).transfer(listingfeeAccruel);
-        // emit MarketplaceBalanceWithdrew();
+        payable(NFTMarketplaceOwner).transfer(feeAccruel);
+        emit commissionWithdrawn(feeAccruel);
     }
 
     function bid(uint nftId) external payable {
@@ -131,7 +138,7 @@ contract NFTAuction {
             IdtoAuction[nftId].highestBid = bids[nftId][msg.sender];
         }
 
-        // emit Bid();
+        emit biddingPlaced(nftId, IdtoAuction[nftId].highestBidder);
     }
 
     function withdrawBid(uint nftId) external {
@@ -144,7 +151,7 @@ contract NFTAuction {
         bids[nftId][msg.sender] = 0;
         payable(msg.sender).transfer(bal);
 
-        // emit withdraw();
+        // emit bidWithdrawm();
     }
 
     function end(uint nftId) external {
@@ -183,7 +190,7 @@ contract NFTAuction {
             IdtoAuction[nftId].highestBid = 0;
         }
 
-        // emit End();
+        // emit auctionEnded();
     }
 
     function fetchNftAuctionData(uint nftId)
