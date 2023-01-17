@@ -42,13 +42,15 @@ contract NFTAuction {
         uint indexed minPrice,
         uint indexed auctiondays
     );
-    event biddingPlaced(uint indexed nftId, address indexed highestBidder);
+    event biddingPlaced(
+        uint indexed nftId,
+        address indexed highestBidder,
+        uint indexed highestBid
+    );
 
     event commissionWithdrawn(uint commission);
 
-    // event bidWithdrawn()
-
-    // event auctionEnded
+    event auctionEnded(string indexed ended, address indexed nftReceiver);
 
     constructor(address _marketplaceAddress, address _marketplaceOwner) {
         marketplace = INFTMarketplace(_marketplaceAddress);
@@ -144,7 +146,11 @@ contract NFTAuction {
             payable(prevHighestBidder).transfer(prevHighestBid);
         }
 
-        emit biddingPlaced(nftId, IdtoAuction[nftId].highestBidder);
+        emit biddingPlaced(
+            nftId,
+            IdtoAuction[nftId].highestBidder,
+            IdtoAuction[nftId].highestBid
+        );
     }
 
     function end(uint nftId) external {
@@ -174,6 +180,10 @@ contract NFTAuction {
             IdtoAuction[nftId].seller = payable(address(0));
             payable(seller).transfer(SellerPayout);
             IdtoAuction[nftId].creator.transfer(royaltyAmount);
+            emit auctionEnded(
+                "auction ended with sale",
+                IdtoAuction[nftId].highestBidder
+            );
         } else {
             IERC721(marketplaceAddress).safeTransferFrom(
                 address(this),
@@ -182,9 +192,9 @@ contract NFTAuction {
             );
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].highestBid = 0;
-        }
 
-        // emit auctionEnded();
+            emit auctionEnded("auction ended without sale", seller);
+        }
     }
 
     function fetchNftAuctionData(uint nftId)
