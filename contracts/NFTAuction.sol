@@ -19,7 +19,6 @@ contract NFTAuction {
     address marketplaceAddress;
     address NFTMarketplaceOwner;
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
-    mapping(uint256 => mapping(address => uint256)) public bids; // tokenid to bids of addresses
 
     uint listingfeeAccruel;
 
@@ -122,38 +121,30 @@ contract NFTAuction {
         require(IdtoAuction[nftId].started, "Not Started");
         require(block.timestamp < IdtoAuction[nftId].endAt, "ended");
         require(
-            msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].highestBid,
+            msg.value > IdtoAuction[nftId].highestBid,
             "value should be greater than current highest bid"
         );
         require(
-            msg.value + bids[nftId][msg.sender] > IdtoAuction[nftId].minPrice,
+            msg.value > IdtoAuction[nftId].minPrice,
             "value should be greater minprice"
         );
 
+        address prevHighestBidder;
+        uint prevHighestBid;
+
         if (IdtoAuction[nftId].highestBidder != address(0)) {
-            bids[nftId][msg.sender] += msg.value;
-            IdtoAuction[nftId].highestBidder = msg.sender;
-            IdtoAuction[nftId].highestBid = bids[nftId][msg.sender];
-        } else {
-            bids[nftId][msg.sender] = msg.value;
-            IdtoAuction[nftId].highestBidder = msg.sender;
-            IdtoAuction[nftId].highestBid = bids[nftId][msg.sender];
+            prevHighestBidder = IdtoAuction[nftId].highestBidder;
+            prevHighestBid = IdtoAuction[nftId].highestBid;
+        }
+
+        IdtoAuction[nftId].highestBidder = msg.sender;
+        IdtoAuction[nftId].highestBid = msg.value;
+
+        if (IdtoAuction[nftId].highestBidder != address(0)) {
+            payable(prevHighestBidder).transfer(prevHighestBid);
         }
 
         emit biddingPlaced(nftId, IdtoAuction[nftId].highestBidder);
-    }
-
-    function withdrawBid(uint nftId) external {
-        require(bids[nftId][msg.sender] > 0, "You have no amount in bid");
-        require(
-            msg.sender != IdtoAuction[nftId].highestBidder,
-            "Bidders except highest bidder can withdraw their bid amount anytime"
-        );
-        uint bal = bids[nftId][msg.sender];
-        bids[nftId][msg.sender] = 0;
-        payable(msg.sender).transfer(bal);
-
-        // emit bidWithdrawm();
     }
 
     function end(uint nftId) external {
@@ -167,6 +158,7 @@ contract NFTAuction {
         uint256 royaltyAmount = ((IdtoAuction[nftId].royaltyPercent *
             IdtoAuction[nftId].highestBid) / 100);
         uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
+        address seller = IdtoAuction[nftId].seller;
 
         IdtoAuction[nftId].started = false;
         IdtoAuction[nftId].minPrice = 0;
@@ -177,10 +169,10 @@ contract NFTAuction {
                 IdtoAuction[nftId].highestBidder,
                 nftId
             );
-            bids[nftId][IdtoAuction[nftId].highestBidder] = 0;
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].highestBidder = address(0);
-            IdtoAuction[nftId].seller.transfer(SellerPayout);
+            IdtoAuction[nftId].seller = payable(address(0));
+            payable(seller).transfer(SellerPayout);
             IdtoAuction[nftId].creator.transfer(royaltyAmount);
         } else {
             IERC721(marketplaceAddress).safeTransferFrom(
@@ -201,10 +193,6 @@ contract NFTAuction {
         returns (Auction memory)
     {
         return IdtoAuction[nftId];
-    }
-
-    function fetchMyBidAmountDataForNft(uint nftId) public view returns (uint) {
-        return bids[nftId][msg.sender];
     }
 
     function fetchListingfee() public view returns (uint) {
