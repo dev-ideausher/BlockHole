@@ -130,6 +130,11 @@ contract NFTAuction {
             msg.value > IdtoAuction[nftId].minPrice,
             "value should be greater minprice"
         );
+        require(
+            msg.sender != IdtoAuction[nftId].seller &&
+                msg.sender != NFTMarketplaceOwner,
+            "seller and marketplace owner cannot participate in the bidding"
+        );
 
         address prevHighestBidder;
         uint prevHighestBid;
