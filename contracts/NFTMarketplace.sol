@@ -155,6 +155,10 @@ contract NFTMarketplace is ERC721URIStorage {
             .royaltyPercent * msg.value) / 100);
         uint256 SellerPayout = price - royaltyAmount;
         require(msg.value == price, "value is not equal to nft purchase price");
+        require(
+            msg.sender != NFTMarketplaceOwner && msg.sender != seller,
+            "seller and marketplace owner cannot buy the nft"
+        );
         idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
