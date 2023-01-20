@@ -60,8 +60,6 @@ contract NFTMarketplace is ERC721URIStorage {
 
     event ListingChargeUpdated(string action, uint256 listingCharge);
 
-    event updatedNftprice(uint token, address seller, uint price);
-
     modifier onlyOwner() {
         require(
             msg.sender == NFTMarketplaceOwner,
@@ -128,20 +126,6 @@ contract NFTMarketplace is ERC721URIStorage {
             address(this),
             price,
             false
-        );
-    }
-
-    function updateNftPrice(uint256 tokenId, uint256 price) external {
-        require(
-            idToNFTItemMarketSpecs[tokenId].seller == msg.sender,
-            "Only the seller can update price of NFT"
-        );
-        idToNFTItemMarketSpecs[tokenId].price = price;
-
-        emit updatedNftprice(
-            tokenId,
-            idToNFTItemMarketSpecs[tokenId].seller,
-            idToNFTItemMarketSpecs[tokenId].price
         );
     }
 
