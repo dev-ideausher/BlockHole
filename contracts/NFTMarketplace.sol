@@ -39,7 +39,8 @@ contract NFTMarketplace is ERC721URIStorage {
         address seller,
         address owner,
         uint256 indexed price,
-        bool sold
+        bool sold,
+        uint256 indexed listingFee
     );
 
     event ListingCancelled(
@@ -126,7 +127,8 @@ contract NFTMarketplace is ERC721URIStorage {
             msg.sender,
             address(this),
             price,
-            false
+            false,
+            msg.value
         );
     }
 
