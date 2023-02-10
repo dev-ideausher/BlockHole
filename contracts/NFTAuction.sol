@@ -40,7 +40,8 @@ contract NFTAuction {
     event auctionStarted(
         uint indexed nftId,
         uint indexed minPrice,
-        uint indexed auctiondays
+        uint indexed auctiondays,
+        uint listingfee
     );
     event biddingPlaced(
         uint indexed nftId,
@@ -108,7 +109,7 @@ contract NFTAuction {
             nftId
         );
 
-        emit auctionStarted(nftId, IdtoAuction[nftId].minPrice, auctiondays);
+        emit auctionStarted(nftId, IdtoAuction[nftId].minPrice, auctiondays, msg.value);
     }
 
     function withdrawListingFeeCommission() external onlyOwner {
