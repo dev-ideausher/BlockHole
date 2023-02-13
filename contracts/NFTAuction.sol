@@ -92,7 +92,7 @@ contract NFTAuction {
         IdtoAuction[nftId].ended = false;
         IdtoAuction[nftId].nftId = nftId;
         IdtoAuction[nftId].seller = payable(msg.sender);
-        IdtoAuction[nftId].minPrice = _minPrice * 10**18;
+        IdtoAuction[nftId].minPrice = _minPrice;
         IdtoAuction[nftId].endAt = block.timestamp + auctiondays * 1 days;
         listingfeeAccruel += msg.value;
 
@@ -109,7 +109,12 @@ contract NFTAuction {
             nftId
         );
 
-        emit auctionStarted(nftId, IdtoAuction[nftId].minPrice, auctiondays, msg.value);
+        emit auctionStarted(
+            nftId,
+            IdtoAuction[nftId].minPrice,
+            auctiondays,
+            msg.value
+        );
     }
 
     function withdrawListingFeeCommission() external onlyOwner {
