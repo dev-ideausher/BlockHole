@@ -14,7 +14,7 @@ contract NFTMarketplace is ERC721URIStorage {
     uint256 listingFee = 0.01 ether;
     address payable NFTMarketplaceOwner;
 
-    mapping(uint256 => NFTItemMarketSpecs) public idToNFTItemMarketSpecs;
+    mapping(uint256 => NFTItemMarketSpecs) idToNFTItemMarketSpecs;
 
     struct NFTItemMarketSpecs {
         uint256 tokenId;
@@ -210,6 +210,7 @@ contract NFTMarketplace is ERC721URIStorage {
         NFTItemMarketSpecs memory NFTDetails = NFTItemMarketSpecs(
             idToNFTItemMarketSpecs[tokenId].tokenId,
             idToNFTItemMarketSpecs[tokenId].creator,
+            idToNFTItemMarketSpecs[tokenId].royaltyPercent,
             idToNFTItemMarketSpecs[tokenId].seller,
             payable(IERC721(address(this)).ownerOf(tokenId)),
             idToNFTItemMarketSpecs[tokenId].price,
