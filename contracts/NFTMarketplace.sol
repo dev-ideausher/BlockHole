@@ -109,8 +109,8 @@ contract NFTMarketplace is ERC721URIStorage {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
-            idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
-            "Only the owner of nft can sell his nft"
+            IERC721(address(this)).ownerOf(tokenId) == msg.sender,
+            "Only the owner of nft can sell their nft."
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
@@ -200,5 +200,22 @@ contract NFTMarketplace is ERC721URIStorage {
 
     function fetchRoyaltyPercentofNft(uint tokenId) public view returns (uint) {
         return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
+    }
+
+    function getNFTDetails(uint tokenId)
+        external
+        view
+        returns (NFTItemMarketSpecs memory)
+    {
+        NFTItemMarketSpecs memory NFTDetails = NFTItemMarketSpecs(
+            idToNFTItemMarketSpecs[tokenId].tokenId,
+            idToNFTItemMarketSpecs[tokenId].creator,
+            idToNFTItemMarketSpecs[tokenId].seller,
+            payable(IERC721(address(this)).ownerOf(tokenId)),
+            idToNFTItemMarketSpecs[tokenId].price,
+            idToNFTItemMarketSpecs[tokenId].sold
+        );
+
+        return NFTDetails;
     }
 }
