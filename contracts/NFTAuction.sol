@@ -75,7 +75,7 @@ contract NFTAuction {
         require(!IdtoAuction[nftId].started, "Started");
         require(
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
-            "Not Owner"
+            "Only the owner of nft can list the nft in auction"
         );
         require(
             msg.value == marketplace.listingFee(),

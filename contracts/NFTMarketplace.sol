@@ -107,7 +107,7 @@ contract NFTMarketplace is ERC721URIStorage {
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
             IERC721(address(this)).ownerOf(tokenId) == msg.sender,
-            "Only the owner of nft can sell their nft."
+            "Only the owner of nft list the nft for sale"
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = msg.sender;
