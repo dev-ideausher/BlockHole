@@ -11,7 +11,7 @@ interface INFTMarketplace {
         view
         returns (uint);
 
-    function getlistingFee() external view returns (uint256);
+    function listingFee() external view returns (uint256);
 }
 
 contract NFTAuction {
@@ -78,7 +78,7 @@ contract NFTAuction {
             "Not Owner"
         );
         require(
-            msg.value == marketplace.getlistingFee(),
+            msg.value == marketplace.listingFee(),
             "Must be equal to listing price"
         );
         require(
@@ -217,6 +217,6 @@ contract NFTAuction {
     }
 
     function fetchListingfee() public view returns (uint) {
-        return marketplace.getlistingFee();
+        return marketplace.listingFee();
     }
 }
