@@ -26,14 +26,14 @@ contract NFTAuction {
     struct Auction {
         // address marketplaceAddress;
         uint nftId;
-        address payable seller;
+        address seller;
         uint minPrice;
         uint endAt;
         bool started;
         bool ended;
         address highestBidder;
         uint highestBid;
-        address payable creator;
+        address creator;
         uint royaltyPercent;
     }
 
@@ -91,14 +91,12 @@ contract NFTAuction {
         IdtoAuction[nftId].started = true;
         IdtoAuction[nftId].ended = false;
         IdtoAuction[nftId].nftId = nftId;
-        IdtoAuction[nftId].seller = payable(msg.sender);
+        IdtoAuction[nftId].seller = msg.sender;
         IdtoAuction[nftId].minPrice = _minPrice;
         IdtoAuction[nftId].endAt = block.timestamp + auctiondays * 1 days;
         listingfeeAccruel += msg.value;
 
-        IdtoAuction[nftId].creator = payable(
-            marketplace.fetchCreatorNft(nftId)
-        );
+        IdtoAuction[nftId].creator = marketplace.fetchCreatorNft(nftId);
 
         IdtoAuction[nftId].royaltyPercent = marketplace
             .fetchRoyaltyPercentofNft(nftId);
@@ -188,9 +186,9 @@ contract NFTAuction {
             );
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].highestBidder = address(0);
-            IdtoAuction[nftId].seller = payable(address(0));
+            IdtoAuction[nftId].seller = address(0);
             payable(seller).transfer(SellerPayout);
-            IdtoAuction[nftId].creator.transfer(royaltyAmount);
+            payable(IdtoAuction[nftId].creator).transfer(royaltyAmount);
             emit auctionEnded(
                 "auction ended with sale",
                 IdtoAuction[nftId].highestBidder

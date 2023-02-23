@@ -19,10 +19,10 @@ contract NFTMarketplace is ERC721URIStorage {
 
     struct NFTItemMarketSpecs {
         uint256 tokenId;
-        address payable creator;
+        address creator;
         uint256 royaltyPercent;
         address seller;
-        address payable owner;
+        address owner;
         uint256 price;
         bool sold;
     }
@@ -89,9 +89,9 @@ contract NFTMarketplace is ERC721URIStorage {
         _mint(msg.sender, tokenId);
         _setTokenURI(tokenId, tokenUri);
         idToNFTItemMarketSpecs[tokenId].tokenId = tokenId;
-        idToNFTItemMarketSpecs[tokenId].creator = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].creator = msg.sender;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
-        idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].owner = msg.sender;
         idToNFTItemMarketSpecs[tokenId].royaltyPercent = royaltyPercent;
         idToNFTItemMarketSpecs[tokenId].sold = false;
 
@@ -110,9 +110,9 @@ contract NFTMarketplace is ERC721URIStorage {
             "Only the owner of nft can sell their nft."
         );
 
-        idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].seller = msg.sender;
         idToNFTItemMarketSpecs[tokenId].price = price;
-        idToNFTItemMarketSpecs[tokenId].owner = payable(address(this));
+        idToNFTItemMarketSpecs[tokenId].owner = address(this);
         idToNFTItemMarketSpecs[tokenId].sold = false;
 
         _transfer(msg.sender, address(this), tokenId);
@@ -135,7 +135,7 @@ contract NFTMarketplace is ERC721URIStorage {
             idToNFTItemMarketSpecs[tokenId].seller == msg.sender,
             "Only the seller can cancel the listing"
         );
-        idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].owner = msg.sender;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
 
         _transfer(address(this), seller, tokenId);
@@ -159,7 +159,7 @@ contract NFTMarketplace is ERC721URIStorage {
             msg.sender != NFTMarketplaceOwner && msg.sender != seller,
             "seller and marketplace owner cannot buy the nft"
         );
-        idToNFTItemMarketSpecs[tokenId].owner = payable(msg.sender);
+        idToNFTItemMarketSpecs[tokenId].owner = msg.sender;
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
         _transfer(address(this), msg.sender, tokenId);
@@ -179,7 +179,7 @@ contract NFTMarketplace is ERC721URIStorage {
     function withdrawListingCommission() external onlyOwner {
         uint256 balance = address(this).balance;
         require(balance > 0, "Zero balance in the account.");
-        payable(NFTMarketplaceOwner).transfer(address(this).balance);
+        NFTMarketplaceOwner.transfer(address(this).balance);
 
         emit MarketplaceBalanceWithdrew(
             "Marketplace balance withdrew",
@@ -209,7 +209,7 @@ contract NFTMarketplace is ERC721URIStorage {
             idToNFTItemMarketSpecs[tokenId].creator,
             idToNFTItemMarketSpecs[tokenId].royaltyPercent,
             idToNFTItemMarketSpecs[tokenId].seller,
-            payable(IERC721(address(this)).ownerOf(tokenId)),
+            IERC721(address(this)).ownerOf(tokenId),
             idToNFTItemMarketSpecs[tokenId].price,
             idToNFTItemMarketSpecs[tokenId].sold
         );
