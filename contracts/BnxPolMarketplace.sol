@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 // import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -16,7 +17,7 @@ contract NFTMarketplace is ERC721URIStorage {
     address payable NFTMarketplaceOwner;
     address bnxToken;
 
-    mapping(uint256 => NFTItemMarketSpecs) public idToNFTItemMarketSpecs;
+    mapping(uint256 => NFTItemMarketSpecs) idToNFTItemMarketSpecs;
 
     struct NFTItemMarketSpecs {
         uint256 tokenId;
@@ -118,8 +119,8 @@ contract NFTMarketplace is ERC721URIStorage {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
-            idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
-            "Only the owner of nft can sell his nft"
+            IERC721(address(this)).ownerOf(tokenId) == msg.sender,
+            "Only the owner of nft can sell their nft."
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
@@ -148,8 +149,8 @@ contract NFTMarketplace is ERC721URIStorage {
         require(price > 0, "Price cannot be 0");
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
-            idToNFTItemMarketSpecs[tokenId].owner == msg.sender,
-            "Only the owner of nft can sell his nft"
+            IERC721(address(this)).ownerOf(tokenId) == msg.sender,
+            "Only the owner of nft can sell their nft."
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = payable(msg.sender);
