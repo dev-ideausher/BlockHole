@@ -6,18 +6,19 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 interface INFTMarketplace {
     function fetchCreatorNft(uint tokenId) external view returns (address);
 
-    function fetchRoyaltyPercentofNft(uint tokenId)
-        external
-        view
-        returns (uint);
+    function fetchRoyaltyPercentofNft(
+        uint tokenId
+    ) external view returns (uint);
 
     function listingFee() external view returns (uint256);
+
+    function serviceFeePercent() external view returns (uint256);
 }
 
 contract NFTAuction {
     INFTMarketplace marketplace;
     address marketplaceAddress;
-    address NFTMarketplaceOwner;
+    address payable NFTMarketplaceOwner;
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
 
     uint listingfeeAccruel;
@@ -75,7 +76,7 @@ contract NFTAuction {
         require(!IdtoAuction[nftId].started, "Started");
         require(
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
-            "Only the owner of nft can list the nft in auction"
+            "Only owner of nft can list the nft in auction"
         );
         require(
             msg.value == marketplace.listingFee(),
@@ -119,7 +120,7 @@ contract NFTAuction {
         require(listingfeeAccruel > 0, "Zero balance in the account.");
         uint feeAccruel = listingfeeAccruel;
         listingfeeAccruel = 0;
-        payable(NFTMarketplaceOwner).transfer(feeAccruel);
+        NFTMarketplaceOwner.transfer(feeAccruel);
         emit commissionWithdrawn(feeAccruel);
     }
 
@@ -155,6 +156,13 @@ contract NFTAuction {
             payable(prevHighestBidder).transfer(prevHighestBid);
         }
 
+        if (
+            block.timestamp < IdtoAuction[nftId].endAt &&
+            block.timestamp > IdtoAuction[nftId].endAt - 600
+        ) {
+            IdtoAuction[nftId].endAt += 600;
+        }
+
         emit biddingPlaced(
             nftId,
             IdtoAuction[nftId].highestBidder,
@@ -170,9 +178,18 @@ contract NFTAuction {
         );
         require(!IdtoAuction[nftId].ended, "ended");
         IdtoAuction[nftId].ended = true;
+
         uint256 royaltyAmount = ((IdtoAuction[nftId].royaltyPercent *
             IdtoAuction[nftId].highestBid) / 100);
-        uint256 SellerPayout = IdtoAuction[nftId].highestBid - royaltyAmount;
+
+        uint ServiceFeePercent = marketplace.serviceFeePercent();
+
+        uint MarketplaceOwnerServiceFee = ((ServiceFeePercent *
+            IdtoAuction[nftId].highestBid) / 100);
+
+        uint256 SellerPayout = IdtoAuction[nftId].highestBid -
+            (MarketplaceOwnerServiceFee + royaltyAmount);
+
         address seller = IdtoAuction[nftId].seller;
 
         IdtoAuction[nftId].started = false;
@@ -187,8 +204,12 @@ contract NFTAuction {
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].seller = address(0);
+
             payable(seller).transfer(SellerPayout);
+
             payable(IdtoAuction[nftId].creator).transfer(royaltyAmount);
+
+            NFTMarketplaceOwner.transfer(MarketplaceOwnerServiceFee);
             emit auctionEnded(
                 "auction ended with sale",
                 IdtoAuction[nftId].highestBidder
@@ -206,15 +227,17 @@ contract NFTAuction {
         }
     }
 
-    function fetchNftAuctionData(uint nftId)
-        public
-        view
-        returns (Auction memory)
-    {
+    function fetchNftAuctionData(
+        uint nftId
+    ) public view returns (Auction memory) {
         return IdtoAuction[nftId];
     }
 
     function fetchListingfee() public view returns (uint) {
         return marketplace.listingFee();
+    }
+
+    function fetchServiceFeePercent() public view returns (uint) {
+        return marketplace.serviceFeePercent();
     }
 }

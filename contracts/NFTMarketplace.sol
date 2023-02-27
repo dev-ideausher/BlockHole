@@ -12,7 +12,9 @@ contract NFTMarketplace is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    uint256 public listingFee = 0.01 ether;
+    uint256 public listingFee = 0.001 ether;
+    uint public serviceFeePercent = 5;
+
     address payable NFTMarketplaceOwner;
 
     mapping(uint256 => NFTItemMarketSpecs) idToNFTItemMarketSpecs;
@@ -62,6 +64,8 @@ contract NFTMarketplace is ERC721URIStorage {
 
     event ListingChargeUpdated(string action, uint256 listingCharge);
 
+    event ServiceFeePercentUpdated(string action, uint256 serviceFeePercent);
+
     modifier onlyOwner() {
         require(
             msg.sender == NFTMarketplaceOwner,
@@ -70,7 +74,7 @@ contract NFTMarketplace is ERC721URIStorage {
         _;
     }
 
-    constructor(address _marketplaceOwner) ERC721("BlockHole Tokens", "BHT") {
+    constructor(address _marketplaceOwner) ERC721("Blockhole Tokens", "BHT") {
         NFTMarketplaceOwner = payable(_marketplaceOwner);
     }
 
@@ -80,10 +84,26 @@ contract NFTMarketplace is ERC721URIStorage {
         emit ListingChargeUpdated("Listing Charge Updated", listingFee);
     }
 
-    function createNFT(string memory tokenUri, uint256 royaltyPercent)
-        external
-    {
-        require(royaltyPercent <= 10, "Royalty should be less than 10%");
+    function updateServiceFee(uint _serviceFeePercent) external onlyOwner {
+        require(
+            _serviceFeePercent >= 2 && _serviceFeePercent <= 10,
+            "Service fee should be between 2 and 10"
+        );
+        serviceFeePercent = _serviceFeePercent;
+        emit ServiceFeePercentUpdated(
+            "Service Fee percent updated",
+            serviceFeePercent
+        );
+    }
+
+    function createNFT(
+        string memory tokenUri,
+        uint256 royaltyPercent
+    ) external {
+        require(
+            royaltyPercent >= 5 && royaltyPercent <= 10,
+            "Royalty should be between 5 to 10 %"
+        );
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
         _mint(msg.sender, tokenId);
@@ -107,7 +127,7 @@ contract NFTMarketplace is ERC721URIStorage {
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
             IERC721(address(this)).ownerOf(tokenId) == msg.sender,
-            "Only the owner of nft list the nft for sale"
+            "Only the owner of nft can list the nft  for sale"
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = msg.sender;
@@ -153,7 +173,11 @@ contract NFTMarketplace is ERC721URIStorage {
         address seller = idToNFTItemMarketSpecs[tokenId].seller;
         uint256 royaltyAmount = ((idToNFTItemMarketSpecs[tokenId]
             .royaltyPercent * msg.value) / 100);
-        uint256 SellerPayout = price - royaltyAmount;
+        uint256 MarketplaceOwnerServiceFee = ((serviceFeePercent * msg.value) /
+            100);
+        uint256 SellerPayout = price -
+            (royaltyAmount + MarketplaceOwnerServiceFee);
+
         require(msg.value == price, "value is not equal to nft purchase price");
         require(
             msg.sender != NFTMarketplaceOwner && msg.sender != seller,
@@ -163,10 +187,14 @@ contract NFTMarketplace is ERC721URIStorage {
         idToNFTItemMarketSpecs[tokenId].sold = true;
         idToNFTItemMarketSpecs[tokenId].seller = address(0);
         _transfer(address(this), msg.sender, tokenId);
+
         payable(idToNFTItemMarketSpecs[tokenId].creator).transfer(
             royaltyAmount
         );
+
         payable(seller).transfer(SellerPayout);
+
+        payable(NFTMarketplaceOwner).transfer(MarketplaceOwnerServiceFee);
 
         emit buyingNFT(
             tokenId,
@@ -199,11 +227,9 @@ contract NFTMarketplace is ERC721URIStorage {
         return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
     }
 
-    function getNFTDetails(uint tokenId)
-        external
-        view
-        returns (NFTItemMarketSpecs memory)
-    {
+    function getNFTDetails(
+        uint tokenId
+    ) external view returns (NFTItemMarketSpecs memory) {
         NFTItemMarketSpecs memory NFTDetails = NFTItemMarketSpecs(
             idToNFTItemMarketSpecs[tokenId].tokenId,
             idToNFTItemMarketSpecs[tokenId].creator,
