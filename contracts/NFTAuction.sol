@@ -47,7 +47,8 @@ contract NFTAuction {
     event biddingPlaced(
         uint indexed nftId,
         address indexed highestBidder,
-        uint indexed highestBid
+        uint indexed highestBid,
+        uint endAt
     );
 
     event commissionWithdrawn(uint commission);
@@ -166,7 +167,8 @@ contract NFTAuction {
         emit biddingPlaced(
             nftId,
             IdtoAuction[nftId].highestBidder,
-            IdtoAuction[nftId].highestBid
+            IdtoAuction[nftId].highestBid,
+            IdtoAuction[nftId].endAt
         );
     }
 
