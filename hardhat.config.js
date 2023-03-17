@@ -1,11 +1,11 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-etherscan");
-require("hardhat-deploy");
-require("solidity-coverage");
-require("hardhat-gas-reporter");
-require("hardhat-contract-sizer");
-require("dotenv").config();
+require('@nomicfoundation/hardhat-toolbox');
+require('@nomiclabs/hardhat-waffle');
+require('@nomiclabs/hardhat-etherscan');
+require('hardhat-deploy');
+require('solidity-coverage');
+require('hardhat-gas-reporter');
+require('hardhat-contract-sizer');
+require('dotenv').config();
 
 // const GOERLI_RPC_URL =
 //   process.env.GOERLI_RPC_URL ||
@@ -17,8 +17,8 @@ require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.4",
-  defaultNetwork: "hardhat",
+  solidity: '0.8.4',
+  defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
       chainId: 31337,
@@ -26,15 +26,15 @@ module.exports = {
     localhost: {
       chainId: 31337,
     },
-    // goerli: {
-    //   url: GOERLI_RPC_URL,
-    //   accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-    //   //   accounts: {
-    //   //     mnemonic: MNEMONIC,
-    //   //   },
-    //   saveDeployments: true,
-    //   chainId: 5,
-    // },
+    goerli: {
+      url: GOERLI_RPC_URL,
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      //   accounts: {
+      //     mnemonic: MNEMONIC,
+      //   },
+      saveDeployments: true,
+      chainId: 5,
+    },
 
     // mainnet: {
     //   url: MAINNET_RPC_URL,

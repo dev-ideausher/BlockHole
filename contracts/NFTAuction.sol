@@ -21,7 +21,7 @@ contract NFTAuction {
     address payable NFTMarketplaceOwner;
     mapping(uint256 => Auction) public IdtoAuction; // tokenid to auction
 
-    uint listingfeeAccruel;
+    uint public listingfeeAccruel;
 
     // need to get some details from imported nftmarketplace contract
     struct Auction {
