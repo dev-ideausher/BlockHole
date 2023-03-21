@@ -77,7 +77,7 @@ contract NFTAuction {
         require(!IdtoAuction[nftId].started, "Started");
         require(
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
-            "Only owner of nft can list the nft in auction"
+            "Only owner of nft can list the nft in auction or its already in auction"
         );
         require(
             msg.value == marketplace.listingFee(),
@@ -126,8 +126,11 @@ contract NFTAuction {
     }
 
     function bid(uint nftId) external payable {
-        require(IdtoAuction[nftId].started, "Not Started");
-        require(block.timestamp < IdtoAuction[nftId].endAt, "ended");
+        require(
+            IdtoAuction[nftId].started,
+            "There is no ongoing auction for this nft"
+        );
+        require(block.timestamp < IdtoAuction[nftId].endAt, "auction ended");
         require(
             msg.value > IdtoAuction[nftId].highestBid,
             "value should be greater than current highest bid"
@@ -173,12 +176,15 @@ contract NFTAuction {
     }
 
     function end(uint nftId) external {
-        require(IdtoAuction[nftId].started, "not started");
+        require(
+            IdtoAuction[nftId].started,
+            "There is no ongoing auction for this nft"
+        );
         require(
             block.timestamp > IdtoAuction[nftId].endAt,
-            "auction still going"
+            "auction still ongoing"
         );
-        require(!IdtoAuction[nftId].ended, "ended");
+        require(!IdtoAuction[nftId].ended, "auction ended");
         IdtoAuction[nftId].ended = true;
 
         uint256 royaltyAmount = ((IdtoAuction[nftId].royaltyPercent *
