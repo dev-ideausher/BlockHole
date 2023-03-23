@@ -133,7 +133,7 @@ contract NFTAuction {
             IdtoAuction[nftId].started,
             "There is no ongoing auction for this nft"
         );
-        require(block.timestamp < IdtoAuction[nftId].endAt, "auction ended");
+        require(block.timestamp < IdtoAuction[nftId].endAt, "auction expired");
         require(
             msg.value > IdtoAuction[nftId].highestBid,
             "value should be greater than current highest bid"
