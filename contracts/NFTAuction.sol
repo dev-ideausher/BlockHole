@@ -230,6 +230,7 @@ contract NFTAuction {
             );
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].highestBid = 0;
+            IdtoAuction[nftId].seller = address(0);
 
             emit auctionEnded("auction ended without sale", seller);
         }
