@@ -74,7 +74,10 @@ contract NFTAuction {
         uint _minPrice,
         uint8 auctiondays
     ) external payable {
-        require(!IdtoAuction[nftId].started, "Started");
+        require(
+            !IdtoAuction[nftId].started,
+            "Only owner of nft can list the nft in auction or its already in auction"
+        );
         require(
             msg.sender == IERC721(marketplaceAddress).ownerOf(nftId),
             "Only owner of nft can list the nft in auction or its already in auction"
