@@ -202,19 +202,21 @@ contract NFTAuction {
             (MarketplaceOwnerServiceFee + royaltyAmount);
 
         address seller = IdtoAuction[nftId].seller;
+        address highestBidder = IdtoAuction[nftId].highestBidder;
 
         IdtoAuction[nftId].started = false;
         IdtoAuction[nftId].minPrice = 0;
 
         if (IdtoAuction[nftId].highestBidder != address(0)) {
-            IERC721(marketplaceAddress).safeTransferFrom(
-                address(this),
-                IdtoAuction[nftId].highestBidder,
-                nftId
-            );
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].seller = address(0);
+
+            IERC721(marketplaceAddress).transferFrom(
+                address(this),
+                highestBidder,
+                nftId
+            );
 
             payable(seller).transfer(SellerPayout);
 
@@ -226,14 +228,15 @@ contract NFTAuction {
                 IdtoAuction[nftId].highestBidder
             );
         } else {
-            IERC721(marketplaceAddress).safeTransferFrom(
-                address(this),
-                IdtoAuction[nftId].seller,
-                nftId
-            );
             IdtoAuction[nftId].highestBidder = address(0);
             IdtoAuction[nftId].highestBid = 0;
             IdtoAuction[nftId].seller = address(0);
+
+            IERC721(marketplaceAddress).transferFrom(
+                address(this),
+                seller,
+                nftId
+            );
 
             emit auctionEnded("auction ended without sale", seller);
         }
