@@ -26,15 +26,15 @@ module.exports = {
     localhost: {
       chainId: 31337,
     },
-    goerli: {
-      url: GOERLI_RPC_URL,
-      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-      //   accounts: {
-      //     mnemonic: MNEMONIC,
-      //   },
-      saveDeployments: true,
-      chainId: 5,
-    },
+    // goerli: {
+    //   url: GOERLI_RPC_URL,
+    //   accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+    //   //   accounts: {
+    //   //     mnemonic: MNEMONIC,
+    //   //   },
+    //   saveDeployments: true,
+    //   chainId: 5,
+    // },
 
     // mainnet: {
     //   url: MAINNET_RPC_URL,
