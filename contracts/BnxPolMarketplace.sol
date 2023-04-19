@@ -181,12 +181,16 @@ contract NFTMarketplace is ERC721URIStorage {
         uint256 priceinBnx = idToNFTItemMarketSpecs[tokenId].priceinBnx;
         string memory mode;
         if (idToNFTItemMarketSpecs[tokenId].isMatic) {
-            mode = "MATIC";
             require(
                 msg.value == idToNFTItemMarketSpecs[tokenId].priceinMATIC,
                 "value is not equal to nft purchase price"
             );
+            mode = "MATIC";
         } else {
+            require(
+                msg.value == 0,
+                "The nft is listed in banccoin as payment. Please don't send matic"
+            );
             mode = "BNX";
         }
 
