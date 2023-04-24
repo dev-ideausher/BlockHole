@@ -219,7 +219,12 @@ contract NFTAuction {
                     address(this),
                     bidInBnx
                 );
-                IERC20(Bnxtoken).transfer(prevHighestBidder, prevHighestBid);
+                if (prevHighestBidder != address(0)) {
+                    IERC20(Bnxtoken).transfer(
+                        prevHighestBidder,
+                        prevHighestBid
+                    );
+                }
             }
         }
 
