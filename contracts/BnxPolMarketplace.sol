@@ -269,6 +269,14 @@ contract NFTMarketplace is ERC721URIStorage {
         return address(this).balance;
     }
 
+    function fetchCreatorNft(uint tokenId) public view returns (address) {
+        return idToNFTItemMarketSpecs[tokenId].creator;
+    }
+
+    function fetchRoyaltyPercentofNft(uint tokenId) public view returns (uint) {
+        return idToNFTItemMarketSpecs[tokenId].royaltyPercent;
+    }
+
     function getNFTDetails(
         uint tokenId
     ) external view returns (NFTItemMarketSpecs memory) {
