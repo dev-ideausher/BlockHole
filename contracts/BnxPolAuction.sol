@@ -293,6 +293,7 @@ contract NFTAuction {
                 IdtoAuction[nftId].highestBid = 0;
                 IdtoAuction[nftId].highestBidder = address(0);
                 IdtoAuction[nftId].seller = address(0);
+                IdtoAuction[nftId].isMatic = false;
 
                 IERC721(marketplaceAddress).transferFrom(
                     address(this),
