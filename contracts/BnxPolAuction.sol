@@ -145,14 +145,14 @@ contract NFTAuction {
             );
         } else if (!IdtoAuction[nftId].isMatic && msg.value > 0) {
             revert(
-                "The nft is placed in auction with bnx payment mode. Please input the bid in bnx"
+                "The nft is placed in auction with BCCN payment mode. Please input the bid in BCCN"
             );
         }
 
         if (!IdtoAuction[nftId].isMatic) {
             require(
                 IERC20(Bnxtoken).balanceOf(msg.sender) >= bidInBnx,
-                "Not enough bnx in wallet to bid"
+                "Not enough BCCN in wallet to bid"
             );
         }
 
