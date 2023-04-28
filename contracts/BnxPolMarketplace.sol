@@ -124,7 +124,7 @@ contract NFTMarketplace is ERC721URIStorage {
         require(msg.value == listingFee, "Must be equal to listing price");
         require(
             IERC721(address(this)).ownerOf(tokenId) == msg.sender,
-            "Only the owner of nft can list the nft for sale"
+            "Only the owner of nft can list the nft for sale or its already in sale"
         );
 
         idToNFTItemMarketSpecs[tokenId].seller = msg.sender;
@@ -132,6 +132,7 @@ contract NFTMarketplace is ERC721URIStorage {
         if (_isMatic) {
             mode = "MATIC";
             idToNFTItemMarketSpecs[tokenId].isMatic = true;
+
             idToNFTItemMarketSpecs[tokenId].priceinMATIC = price;
         } else {
             mode = "BNX";
